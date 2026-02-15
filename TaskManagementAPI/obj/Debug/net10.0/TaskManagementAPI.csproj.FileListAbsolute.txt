@@ -26,6 +26,7 @@ D:\Workspace\dotnet_project\TaskManagement\TaskManagementAPI\obj\Debug\net10.0\T
 D:\Workspace\dotnet_project\TaskManagement\TaskManagementAPI\obj\Debug\net10.0\TaskManagementAPI.csproj.CoreCompileInputs.cache
 D:\Workspace\dotnet_project\TaskManagement\TaskManagementAPI\obj\Debug\net10.0\TaskManagementAPI.MvcApplicationPartsAssemblyInfo.cs
 D:\Workspace\dotnet_project\TaskManagement\TaskManagementAPI\obj\Debug\net10.0\TaskManagementAPI.MvcApplicationPartsAssemblyInfo.cache
+D:\Workspace\dotnet_project\TaskManagement\TaskManagementAPI\obj\Debug\net10.0\TaskManagementAPI.sourcelink.json
 D:\Workspace\dotnet_project\TaskManagement\TaskManagementAPI\obj\Debug\net10.0\rjimswa.dswa.cache.json
 D:\Workspace\dotnet_project\TaskManagement\TaskManagementAPI\obj\Debug\net10.0\rjsmrazor.dswa.cache.json
 D:\Workspace\dotnet_project\TaskManagement\TaskManagementAPI\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
