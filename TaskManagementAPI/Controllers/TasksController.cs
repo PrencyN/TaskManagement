@@ -36,9 +36,11 @@ namespace TaskManagementAPI.Controllers
         [ProducesResponseType(typeof(IEnumerable<TaskResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllTasks(
             [FromQuery] TaskManagementStatus? status,
-            [FromQuery] TaskPriority? priority)
+            [FromQuery] TaskPriority? priority,
+            [FromQuery] TaskFilterType? sortBy = TaskFilterType.CreatedAt,
+            [FromQuery] bool sortDescending = true)
         {
-            var tasks = await _taskService.GetAllTasksAsync(status, priority);
+            var tasks = await _taskService.GetAllTasksAsync(status, priority, sortBy, sortDescending);
             return Ok(tasks);
         }
 

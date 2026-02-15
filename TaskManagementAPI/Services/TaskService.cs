@@ -33,7 +33,11 @@ namespace TaskManagementAPI.Services
             return MapToDto(createdTask);
         }
 
-        public async Task<IEnumerable<TaskResponseDto>> GetAllTasksAsync(TaskManagementStatus? status, TaskPriority? priority)
+        public async Task<IEnumerable<TaskResponseDto>> GetAllTasksAsync(
+            TaskManagementStatus? status, 
+            TaskPriority? priority,
+            TaskFilterType? sortBy = TaskFilterType.CreatedAt,
+            bool sortDescending = true)
         {
             var tasks = await _repository.GetAllAsync();
 
@@ -47,7 +51,33 @@ namespace TaskManagementAPI.Services
                 tasks = tasks.Where(t => t.Priority == priority.Value);
             }
 
-            return tasks.Select(MapToDto).OrderByDescending(t => t.CreatedAt);
+            // Apply sorting
+            tasks = (sortBy ?? TaskFilterType.CreatedAt) switch
+            {
+                TaskFilterType.Priority => SortByPriority(tasks, sortDescending),
+                _ => SortByCreatedDate(tasks, sortDescending) // Default sort by created date
+            };
+
+            return tasks.Select(MapToDto);
+        }
+
+        private IEnumerable<TaskItem> SortByPriority(IEnumerable<TaskItem> tasks, bool descending)
+        {
+            // Priority order: High > Medium > Low
+            return descending
+                ? tasks.OrderByDescending(t => t.Priority == TaskPriority.High)
+                       .ThenByDescending(t => t.Priority == TaskPriority.Medium)
+                       .ThenByDescending(t => t.Priority == TaskPriority.Low)
+                : tasks.OrderBy(t => t.Priority == TaskPriority.Low)
+                       .ThenBy(t => t.Priority == TaskPriority.Medium)
+                       .ThenBy(t => t.Priority == TaskPriority.High);
+        }
+
+        private IEnumerable<TaskItem> SortByCreatedDate(IEnumerable<TaskItem> tasks, bool descending)
+        {
+            return descending
+                ? tasks.OrderByDescending(t => t.CreatedAt)
+                : tasks.OrderBy(t => t.CreatedAt);
         }
 
         public async Task<TaskResponseDto?> GetTaskByIdAsync(int id)
