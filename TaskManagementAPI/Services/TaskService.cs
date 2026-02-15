@@ -62,41 +62,43 @@ namespace TaskManagementAPI.Services
         {
             var sortedTasks = sortOptions.SortBy switch
             {
-                TaskSortField.Priority => SortByPriority(tasks),
-                TaskSortField.Title => SortByTitle(tasks),
-                TaskSortField.Status => SortByStatus(tasks),
-                _ => SortByCreatedDate(tasks)
+                TaskSortField.Priority => SortByPriority(tasks, sortOptions.SortDescending),
+                TaskSortField.Title => SortByTitle(tasks, sortOptions.SortDescending),
+                TaskSortField.Status => SortByStatus(tasks, sortOptions.SortDescending),
+                _ => SortByCreatedDate(tasks, sortOptions.SortDescending)
             };
 
-            return sortOptions.SortDescending 
-                ? sortedTasks.Reverse() 
-                : sortedTasks;
+            return sortedTasks;
         }
 
-        private IEnumerable<TaskItem> SortByPriority(IEnumerable<TaskItem> tasks)
+        private IEnumerable<TaskItem> SortByPriority(IEnumerable<TaskItem> tasks, bool descending)
         {
-            // Priority order: High > Medium > Low
-            return tasks.OrderBy(t => t.Priority == TaskPriority.Low)
-                    .ThenBy(t => t.Priority == TaskPriority.Medium)
-                    .ThenBy(t => t.Priority == TaskPriority.High);
+            // Priority values: Low = 0, Medium = 1, High = 2
+            return descending
+                ? tasks.OrderByDescending(t => (int)t.Priority)
+                : tasks.OrderBy(t => (int)t.Priority);
         }
 
-        private IEnumerable<TaskItem> SortByTitle(IEnumerable<TaskItem> tasks)
+        private IEnumerable<TaskItem> SortByTitle(IEnumerable<TaskItem> tasks, bool descending)
         {
-            return tasks.OrderBy(t => t.Title);
+            return descending
+                ? tasks.OrderByDescending(t => t.Title)
+                : tasks.OrderBy(t => t.Title);
         }
 
-        private IEnumerable<TaskItem> SortByStatus(IEnumerable<TaskItem> tasks)
+        private IEnumerable<TaskItem> SortByStatus(IEnumerable<TaskItem> tasks, bool descending)
         {
-            // Status order: Pending > InProgress > Completed
-            return tasks.OrderBy(t => t.Status == TaskManagementStatus.Pending)
-                    .ThenBy(t => t.Status == TaskManagementStatus.InProgress)
-                    .ThenBy(t => t.Status == TaskManagementStatus.Completed);
+            // Status values: Pending = 0, InProgress = 1, Completed = 2
+            return descending
+                ? tasks.OrderByDescending(t => (int)t.Status)
+                : tasks.OrderBy(t => (int)t.Status);
         }
 
-        private IEnumerable<TaskItem> SortByCreatedDate(IEnumerable<TaskItem> tasks)
+        private IEnumerable<TaskItem> SortByCreatedDate(IEnumerable<TaskItem> tasks, bool descending)
         {
-            return tasks.OrderBy(t => t.CreatedAt);
+            return descending
+                ? tasks.OrderByDescending(t => t.CreatedAt)
+                : tasks.OrderBy(t => t.CreatedAt);
         }
 
         public async Task<TaskResponseDto?> GetTaskByIdAsync(int id)
