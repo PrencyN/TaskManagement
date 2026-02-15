@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TaskManagementAPI.DTOs;
 using TaskManagementAPI.Models.Enums;
+using TaskManagementAPI.Models.Sorting;
 using TaskManagementAPI.Services;
 
 namespace TaskManagementAPI.Controllers
@@ -37,11 +38,17 @@ namespace TaskManagementAPI.Controllers
         public async Task<IActionResult> GetAllTasks(
             [FromQuery] TaskManagementStatus? status,
             [FromQuery] TaskPriority? priority,
-            [FromQuery] TaskFilterType? sortBy = TaskFilterType.CreatedAt,
-            [FromQuery] bool sortDescending = true)
+            [FromQuery] TaskSortDto sort)
         {
-            var tasks = await _taskService.GetAllTasksAsync(status, priority, sortBy, sortDescending);
+            var sortOptions = sort.ToOptions();
+            var tasks = await _taskService.GetAllTasksAsync(status, priority, sortOptions);
             return Ok(tasks);
+        }
+
+        private bool IsValidSortField(string sortBy)
+        {
+            var validFields = new[] { "created", "priority", "title", "status" };
+            return validFields.Contains(sortBy.ToLower());
         }
 
         [HttpGet("{id}")]

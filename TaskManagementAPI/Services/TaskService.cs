@@ -1,6 +1,7 @@
 using TaskManagementAPI.DTOs;
 using TaskManagementAPI.Models;
 using TaskManagementAPI.Models.Enums;
+using TaskManagementAPI.Models.Sorting;
 using TaskManagementAPI.Repositories;
 
 namespace TaskManagementAPI.Services
@@ -36,11 +37,11 @@ namespace TaskManagementAPI.Services
         public async Task<IEnumerable<TaskResponseDto>> GetAllTasksAsync(
             TaskManagementStatus? status, 
             TaskPriority? priority,
-            TaskFilterType? sortBy = TaskFilterType.CreatedAt,
-            bool sortDescending = true)
+            TaskSortOptions? sortOptions = null)
         {
             var tasks = await _repository.GetAllAsync();
 
+            // Apply filters
             if (status.HasValue)
             {
                 tasks = tasks.Where(t => t.Status == status.Value);
@@ -52,32 +53,50 @@ namespace TaskManagementAPI.Services
             }
 
             // Apply sorting
-            tasks = (sortBy ?? TaskFilterType.CreatedAt) switch
-            {
-                TaskFilterType.Priority => SortByPriority(tasks, sortDescending),
-                _ => SortByCreatedDate(tasks, sortDescending) // Default sort by created date
-            };
+            tasks = SortTasks(tasks, sortOptions ?? new TaskSortOptions());
 
             return tasks.Select(MapToDto);
         }
 
-        private IEnumerable<TaskItem> SortByPriority(IEnumerable<TaskItem> tasks, bool descending)
+        private IEnumerable<TaskItem> SortTasks(IEnumerable<TaskItem> tasks, TaskSortOptions sortOptions)
         {
-            // Priority order: High > Medium > Low
-            return descending
-                ? tasks.OrderByDescending(t => t.Priority == TaskPriority.High)
-                       .ThenByDescending(t => t.Priority == TaskPriority.Medium)
-                       .ThenByDescending(t => t.Priority == TaskPriority.Low)
-                : tasks.OrderBy(t => t.Priority == TaskPriority.Low)
-                       .ThenBy(t => t.Priority == TaskPriority.Medium)
-                       .ThenBy(t => t.Priority == TaskPriority.High);
+            var sortedTasks = sortOptions.SortBy switch
+            {
+                TaskSortField.Priority => SortByPriority(tasks),
+                TaskSortField.Title => SortByTitle(tasks),
+                TaskSortField.Status => SortByStatus(tasks),
+                _ => SortByCreatedDate(tasks)
+            };
+
+            return sortOptions.SortDescending 
+                ? sortedTasks.Reverse() 
+                : sortedTasks;
         }
 
-        private IEnumerable<TaskItem> SortByCreatedDate(IEnumerable<TaskItem> tasks, bool descending)
+        private IEnumerable<TaskItem> SortByPriority(IEnumerable<TaskItem> tasks)
         {
-            return descending
-                ? tasks.OrderByDescending(t => t.CreatedAt)
-                : tasks.OrderBy(t => t.CreatedAt);
+            // Priority order: High > Medium > Low
+            return tasks.OrderBy(t => t.Priority == TaskPriority.Low)
+                    .ThenBy(t => t.Priority == TaskPriority.Medium)
+                    .ThenBy(t => t.Priority == TaskPriority.High);
+        }
+
+        private IEnumerable<TaskItem> SortByTitle(IEnumerable<TaskItem> tasks)
+        {
+            return tasks.OrderBy(t => t.Title);
+        }
+
+        private IEnumerable<TaskItem> SortByStatus(IEnumerable<TaskItem> tasks)
+        {
+            // Status order: Pending > InProgress > Completed
+            return tasks.OrderBy(t => t.Status == TaskManagementStatus.Pending)
+                    .ThenBy(t => t.Status == TaskManagementStatus.InProgress)
+                    .ThenBy(t => t.Status == TaskManagementStatus.Completed);
+        }
+
+        private IEnumerable<TaskItem> SortByCreatedDate(IEnumerable<TaskItem> tasks)
+        {
+            return tasks.OrderBy(t => t.CreatedAt);
         }
 
         public async Task<TaskResponseDto?> GetTaskByIdAsync(int id)
